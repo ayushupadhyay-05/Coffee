@@ -132,6 +132,65 @@ Runtime behaviour can be adjusted by editing constants in the source files.
 | Audio volume | `js/audio.js` — `this.volume` | Master gain scalar (0.0 – 1.0) |
 | localStorage key names | `js/machine.js` — `STORAGE_KEYS` | Change to avoid collisions on a shared origin |
 
+## Real-World Hardware Extension
+
+EspressoCraft OS is currently a **simulator** — all brewing steps are timed delays and all sensor readings are physics-modelled in JavaScript. However, the architecture is deliberately structured so that connecting it to a real espresso machine requires changing **only one file**.
+
+### How it works today (simulated)
+
+```
+Browser UI  →  CoffeeMachine (machine.js)  →  BrewingUnit (models.js)
+                                                     ↓
+                                              await sleep(1500ms)  ← fake delay
+```
+
+### How it would work with real hardware
+
+```
+Browser UI  →  CoffeeMachine (machine.js)  →  BrewingUnit (models.js)
+                                                     ↓
+                                         WebSocket / REST API call
+                                                     ↓
+                                      Raspberry Pi / ESP32 backend
+                                                     ↓
+                              GPIO → Relay → Pump / Heater / Grinder
+                              Sensors → Thermocouple / Pressure / Flow meter
+```
+
+### The single integration point
+
+Every brewing action flows through the async methods in `BrewingUnit` (`js/models.js`). Replacing the `sleep()` calls there with real API calls is all that is needed:
+
+```js
+// Current (simulated):
+async grindBeans(grams) {
+  this.onStepChange(1, 'Grinding', grams);
+  await this.sleep(1500); // ← replace this
+}
+
+// Real hardware:
+async grindBeans(grams) {
+  this.onStepChange(1, 'Grinding', grams);
+  await fetch('http://machine.local/api/grind', {
+    method: 'POST',
+    body: JSON.stringify({ grams })
+  });
+}
+```
+
+The entire UI — recipe management, inventory tracking, analytics, audio feedback, and the brewing visualiser — requires no changes.
+
+### Suggested hardware stack
+
+| Component | Role |
+|---|---|
+| Raspberry Pi 4 / ESP32 | Main controller — runs the backend API |
+| K-type thermocouple + MAX31855 | Real boiler temperature readings |
+| Pressure transducer (0–15 bar) | Real pump pressure readings |
+| YF-S201 flow meter | Tracks actual water/milk dispensed |
+| Capacitive level sensors | Water and milk tank levels |
+| 4-channel relay board | Switches pump, heater, and grinder |
+
 ## Screenshots
 
 ![EspressoCraft OS — Main Interface](screenshot.png)
