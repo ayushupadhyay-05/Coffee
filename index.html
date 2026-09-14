@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EspressoCraft OS - Smart Coffee Machine</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Top Header Navigation -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">☕</div>
+      <div>
+        <div class="brand-title">EspressoCraft OS</div>
+        <div class="brand-subtitle">Smart Barista Engine v2.4 • Direct C++ Core Bridge</div>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <!-- Audio FX Toggle -->
+      <button id="audioToggleBtn" class="header-action-btn" title="Toggle Sound FX">
+        <div class="sound-wave-bars">
+          <span class="sound-bar"></span>
+          <span class="sound-bar"></span>
+          <span class="sound-bar"></span>
+        </div>
+        <span id="audioStatusText">Sound On</span>
+      </button>
+
+      <!-- Clean Machine Button -->
+      <button id="cleanMachineBtn" class="header-action-btn warning" title="Flush Grouphead & Steam Wand">
+        <span>🧼</span>
+        <span>Flush Grouphead</span>
+      </button>
+
+      <!-- Stats Modal Button -->
+      <button id="openStatsBtn" class="header-action-btn" title="View Machine Analytics">
+        <span>📊</span>
+        <span>Analytics</span>
+      </button>
+
+      <!-- Status Badge -->
+      <div id="machineStatus" class="machine-status-badge">
+        <div class="status-dot"></div>
+        <span id="machineStatusText">Machine Ready</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Live Inventory Status -->
+    <section>
+      <div class="section-header">
+        <h2 class="section-title">📦 Ingredient Stock (Real-Time Sensors)</h2>
+        <div class="stock-header-actions">
+          <button id="quickTopUpAllBtn" class="pill-action-btn" title="Refill all tanks to full capacity">
+            ⚡ Quick Max Fill All
+          </button>
+        </div>
+      </div>
+      
+      <div class="inventory-grid">
+        <!-- Water Card -->
+        <div id="waterCard" class="inventory-card">
+          <div class="inventory-header">
+            <div class="inventory-title">
+              <span class="inventory-icon">💧</span> Water Tank
+            </div>
+            <div>
+              <span id="waterValue" class="inventory-value">500</span> <span class="inventory-max">/ 1500 ml</span>
+            </div>
+          </div>
+          <div class="meter-track">
+            <div id="waterMeter" class="meter-fill meter-water" style="width: 33.3%;"></div>
+          </div>
+          <div class="inventory-footer">
+            <span id="waterPercent" class="stock-percent-badge">33%</span>
+            <div class="quick-chip-group">
+              <button class="quick-add-chip" data-type="water" data-amount="250">+250ml</button>
+              <button class="quick-add-chip" data-type="water" data-amount="500">+500ml</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Milk Card -->
+        <div id="milkCard" class="inventory-card">
+          <div class="inventory-header">
+            <div class="inventory-title">
+              <span class="inventory-icon">🥛</span> Fresh Milk
+            </div>
+            <div>
+              <span id="milkValue" class="inventory-value">300</span> <span class="inventory-max">/ 1000 ml</span>
+            </div>
+          </div>
+          <div class="meter-track">
+            <div id="milkMeter" class="meter-fill meter-milk" style="width: 30%;"></div>
+          </div>
+          <div class="inventory-footer">
+            <span id="milkPercent" class="stock-percent-badge">30%</span>
+            <div class="quick-chip-group">
+              <button class="quick-add-chip" data-type="milk" data-amount="200">+200ml</button>
+              <button class="quick-add-chip" data-type="milk" data-amount="400">+400ml</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Coffee Beans Card -->
+        <div id="beansCard" class="inventory-card">
+          <div class="inventory-header">
+            <div class="inventory-title">
+              <span class="inventory-icon">🫘</span> Roast Beans
+            </div>
+            <div>
+              <span id="beansValue" class="inventory-value">100</span> <span class="inventory-max">/ 500 g</span>
+            </div>
+          </div>
+          <div class="meter-track">
+            <div id="beansMeter" class="meter-fill meter-beans" style="width: 20%;"></div>
+          </div>
+          <div class="inventory-footer">
+            <span id="beansPercent" class="stock-percent-badge">20%</span>
+            <div class="quick-chip-group">
+              <button class="quick-add-chip" data-type="beans" data-amount="50">+50g</button>
+              <button class="quick-add-chip" data-type="beans" data-amount="150">+150g</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Refill Action Button Card -->
+        <div id="openRefillBtn" class="refill-action-card" title="Open Custom Refill Station">
+          <div class="refill-icon">⚡</div>
+          <div class="refill-btn-text">Refill Station</div>
+          <div class="refill-btn-sub">Custom Amounts</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Workspace: Drink Menu + Brewing Simulator -->
+    <section class="dashboard-grid">
+      
+      <!-- Drink Menu Section -->
+      <div class="drink-menu-wrapper">
+        <div class="section-header menu-controls-header">
+          <div>
+            <h2 class="section-title">☕ Select Your Drink</h2>
+            <div class="section-subtitle">Select drink to begin extraction</div>
+          </div>
+          
+          <!-- Shot Size Modifier Toggle -->
+          <div class="shot-toggle-group">
+            <span class="shot-label">Strength:</span>
+            <button id="singleShotBtn" class="shot-btn active" data-size="1">Single (1x)</button>
+            <button id="doubleShotBtn" class="shot-btn" data-size="2">Double (2x)</button>
+          </div>
+        </div>
+
+        <!-- Category Filter Tabs -->
+        <div class="category-tabs">
+          <button class="category-tab active" data-cat="all">🌟 All Drinks</button>
+          <button class="category-tab" data-cat="black">☕ Black Coffee</button>
+          <button class="category-tab" data-cat="milk">🥛 Milk Specials</button>
+          <button class="category-tab" data-cat="custom">✨ Custom Creations</button>
+        </div>
+
+        <!-- Drink Cards Grid -->
+        <div id="drinkCatalog" class="drink-catalog">
+          <!-- Dynamically populated drink cards -->
+        </div>
+      </div>
+
+      <!-- Simulator Stage & Sensor Diagnostics -->
+      <div class="simulator-panel">
+        <div class="section-header" style="margin-bottom: 0;">
+          <h3 class="section-title">⚙️ Extraction Engine</h3>
+          <span id="currentBrewDrink" class="brew-indicator-badge">Ready</span>
+        </div>
+
+        <!-- Live Sensor Gauges (Boiler Temp & Pump Pressure) -->
+        <div class="gauge-cluster">
+          <!-- Temperature Gauge -->
+          <div class="gauge-card">
+            <div class="gauge-label">
+              <span>🌡️ Boiler PID</span>
+              <span id="tempStatusBadge" class="gauge-chip">Optimal</span>
+            </div>
+            <div class="gauge-display">
+              <span id="gaugeTempVal" class="gauge-val">93.5</span>
+              <span class="gauge-unit">°C</span>
+            </div>
+            <div class="gauge-bar-track">
+              <div id="gaugeTempBar" class="gauge-bar-fill temp-fill" style="width: 78%;"></div>
+            </div>
+          </div>
+
+          <!-- 9-Bar Extraction Pressure Gauge -->
+          <div class="gauge-card">
+            <div class="gauge-label">
+              <span>⏲️ Pump Pressure</span>
+              <span id="pressureStatusBadge" class="gauge-chip">Idle</span>
+            </div>
+            <div class="gauge-display">
+              <span id="gaugePressureVal" class="gauge-val">0.0</span>
+              <span class="gauge-unit">BAR</span>
+            </div>
+            <div class="gauge-bar-track">
+              <div id="gaugePressureBar" class="gauge-bar-fill pressure-fill" style="width: 0%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Animated Cup Simulator Stage -->
+        <div class="cup-stage">
+          <div class="dispenser-spout"></div>
+          <div id="liquidStream" class="liquid-stream"></div>
+          
+          <!-- Steam group -->
+          <div class="steam-group" id="cupSteam">
+            <div class="steam-particle"></div>
+            <div class="steam-particle"></div>
+            <div class="steam-particle"></div>
+            <div class="steam-particle"></div>
+          </div>
+
+          <!-- Take / Sip Banner -->
+          <div id="takeCupBanner" class="take-cup-banner">
+            <div class="take-cup-btn" id="takeCupBtn">
+              <span>✨ Drink Ready! Click to Sip ☕</span>
+            </div>
+          </div>
+
+          <!-- Glass Coffee Cup with Layering -->
+          <div id="visualCup" class="coffee-cup">
+            <div id="cupFoam" class="cup-foam">
+              <span id="latteArtBadge" class="latte-art">🤎</span>
+            </div>
+            <div id="cupMilk" class="cup-liquid-milk"></div>
+            <div id="cupEspresso" class="cup-liquid-espresso"></div>
+            <div id="cupWater" class="cup-liquid-water"></div>
+          </div>
+          <div class="cup-handle"></div>
+        </div>
+
+        <!-- 4 Step Extraction Pipeline Indicators -->
+        <div class="brew-stages">
+          <div id="stage1" class="stage-item">
+            <span class="stage-icon">⚙️</span>
+            <span class="stage-name">1. Grind</span>
+            <span class="stage-sub" id="stage1Sub">Ready</span>
+          </div>
+          <div id="stage2" class="stage-item">
+            <span class="stage-icon">🔥</span>
+            <span class="stage-name">2. Heat & Press</span>
+            <span class="stage-sub" id="stage2Sub">93.5°C</span>
+          </div>
+          <div id="stage3" class="stage-item">
+            <span class="stage-icon">🌪️</span>
+            <span class="stage-name">3. Steam & Froth</span>
+            <span class="stage-sub" id="stage3Sub">Auto</span>
+          </div>
+          <div id="stage4" class="stage-item">
+            <span class="stage-icon">☕</span>
+            <span class="stage-name">4. Dispense</span>
+            <span class="stage-sub" id="stage4Sub">Ready</span>
+          </div>
+        </div>
+
+        <!-- Overall Brew Progress -->
+        <div class="overall-progress-bar">
+          <div id="overallProgress" class="overall-progress-fill"></div>
+        </div>
+
+        <!-- Activity Log Console (Terminal) -->
+        <div class="terminal-card">
+          <div class="terminal-header">
+            <div class="terminal-title">
+              <span class="terminal-dot red"></span>
+              <span class="terminal-dot yellow"></span>
+              <span class="terminal-dot green"></span>
+              <span>Machine Diagnostics & Event Stream</span>
+            </div>
+            <div class="terminal-controls">
+              <button id="clearLogsBtn" class="terminal-btn" title="Clear console">Clear</button>
+            </div>
+          </div>
+          <div id="terminalLogs" class="terminal-logs">
+            <div class="log-entry">> [SYSTEM] EspressoCraft OS Barista Core v2.4 initialized.</div>
+            <div class="log-entry">> [SENSOR] Water PID: 93.5°C | Pressure: 0.0 Bar | System Ready.</div>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+  </main>
+
+  <!-- Refill Station Modal -->
+  <div id="refillModal" class="modal-backdrop">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">⚡ Refill Station</h3>
+        <button id="closeRefillBtn" class="close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="preset-refill-row">
+          <button type="button" class="preset-btn" id="presetSmallRefill">Standard (+500ml W / +300ml M / +100g B)</button>
+          <button type="button" class="preset-btn highlight" id="presetMaxRefill">⚡ Fill to 100% Max</button>
+        </div>
+        <form id="refillForm">
+          <div class="form-group">
+            <label class="form-label">💧 Water to add (ml) - Max 1500ml</label>
+            <input type="number" id="refillWaterInput" class="form-input" value="500" min="0" max="1500" step="50" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">🥛 Milk to add (ml) - Max 1000ml</label>
+            <input type="number" id="refillMilkInput" class="form-input" value="300" min="0" max="1000" step="50" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">🫘 Coffee Beans to add (g) - Max 500g</label>
+            <input type="number" id="refillBeansInput" class="form-input" value="100" min="0" max="500" step="10" required>
+          </div>
+          <div class="btn-group">
+            <button type="button" id="cancelRefillBtn" class="btn-secondary">Cancel</button>
+            <button type="submit" class="btn-primary">Confirm Refill</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Recipe Modal -->
+  <div id="customRecipeModal" class="modal-backdrop">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">✨ Create Artisanal Custom Drink</h3>
+        <button id="closeCustomModalBtn" class="close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="customRecipeForm">
+          <!-- Icon Picker -->
+          <div class="form-group">
+            <label class="form-label">Select Drink Icon</label>
+            <div class="icon-selector-grid" id="iconSelectorGrid">
+              <button type="button" class="icon-choice active" data-icon="☕">☕</button>
+              <button type="button" class="icon-choice" data-icon="🥛">🥛</button>
+              <button type="button" class="icon-choice" data-icon="🧋">🧋</button>
+              <button type="button" class="icon-choice" data-icon="🧊">🧊</button>
+              <button type="button" class="icon-choice" data-icon="🍫">🍫</button>
+              <button type="button" class="icon-choice" data-icon="🍵">🍵</button>
+              <button type="button" class="icon-choice" data-icon="🍯">🍯</button>
+              <button type="button" class="icon-choice" data-icon="✨">✨</button>
+            </div>
+            <input type="hidden" id="customIconInput" value="☕">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Drink Name</label>
+            <input type="text" id="customNameInput" class="form-input" placeholder="e.g. Hazelnut Mocha Dream" required maxlength="30">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">💧 Water (ml)</label>
+              <input type="number" id="customWaterInput" class="form-input" value="60" min="0" max="400" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">🥛 Milk (ml)</label>
+              <input type="number" id="customMilkInput" class="form-input" value="120" min="0" max="400" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">🫘 Beans (g)</label>
+              <input type="number" id="customBeansInput" class="form-input" value="20" min="5" max="60" required>
+            </div>
+          </div>
+
+          <!-- Recipe Preview Pill -->
+          <div class="recipe-live-preview">
+            <span id="previewDrinkIcon">☕</span>
+            <span id="previewDrinkText">Custom Drink Preview: 60ml Water • 120ml Milk • 20g Beans</span>
+          </div>
+
+          <div class="btn-group">
+            <button type="button" id="cancelCustomBtn" class="btn-secondary">Cancel</button>
+            <button type="submit" class="btn-primary">Save & Add to Menu</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Machine Lifetime Analytics Modal -->
+  <div id="statsModal" class="modal-backdrop">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">📊 Machine Analytics & Diagnostics</h3>
+        <button id="closeStatsBtn" class="close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-num" id="statTotalBrewed">0</div>
+            <div class="stat-title">Cups Brewed</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num" id="statTotalWater">0 ml</div>
+            <div class="stat-title">Water Processed</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num" id="statTotalMilk">0 ml</div>
+            <div class="stat-title">Milk Steamed</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num" id="statTotalBeans">0 g</div>
+            <div class="stat-title">Beans Ground</div>
+          </div>
+        </div>
+
+        <div class="stats-detail-card">
+          <div class="detail-row">
+            <span>🧼 Maintenance Flush Cycles:</span>
+            <strong id="statCleanCycles">0</strong>
+          </div>
+          <div class="detail-row">
+            <span>🌟 Most Popular Drink:</span>
+            <strong id="statFavoriteDrink">None Yet</strong>
+          </div>
+          <div class="detail-row">
+            <span>🕒 Last Brewed Order:</span>
+            <strong id="statLastBrewed">Never</strong>
+          </div>
+        </div>
+
+        <div class="btn-group">
+          <button type="button" id="closeStatsBtn2" class="btn-primary">Close Diagnostics</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/models.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/machine.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
