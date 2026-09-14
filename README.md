@@ -211,6 +211,6 @@ This project is licensed under the [MIT License](LICENSE).
 ## Author
 
 **Ayush**
-- GitHub: [[@ayushupadhyay-05](https://github.com/ayushupadhyay-05)
+- GitHub: [@ayushupadhyay-05](https://github.com/ayushupadhyay-05)
 - LinkedIn: [Ayush on LinkedIn](www.linkedin.com/in/ayush8603402773)
 
